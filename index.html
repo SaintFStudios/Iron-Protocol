@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FF6B35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>Iron Protocol</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --bg:#0A0A0F; --card:#111116; --border:#1E1E26; --accent:#FF6B35;
+  --cyan:#22D3EE; --purple:#A78BFA; --green:#34D399; --red:#ff4444;
+  --text:#E8E8ED; --dim:#666; --faint:#444;
+}
+body { background:var(--bg); color:var(--text); font-family:'JetBrains Mono','SF Mono',monospace; overflow-x:hidden; }
+input, select, button { font-family:inherit; }
+
+.app { max-width:480px; margin:0 auto; padding:0 16px 40px; min-height:100vh; }
+
+/* Header */
+.header { text-align:center; padding:40px 0 16px; }
+.badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,107,53,0.1);
+  border:1px solid rgba(255,107,53,0.25); border-radius:12px; padding:8px 18px; }
+.badge span { font-size:13px; font-weight:800; color:var(--accent); letter-spacing:3px; }
+
+/* Tabs */
+.tab-bar { display:flex; gap:4px; background:var(--card); border-radius:12px; padding:4px;
+  margin-bottom:20px; border:1px solid var(--border); }
+.tab-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:5px;
+  padding:10px 0; border-radius:8px; border:none; background:none; cursor:pointer;
+  font-size:11px; font-weight:700; color:#555; transition:all 0.2s; }
+.tab-btn.on { background:rgba(255,107,53,0.12); color:var(--accent); }
+
+/* Cards */
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+.row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
+.mini-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; text-align:center; }
+.mini-val { font-size:19px; font-weight:800; color:#fff; }
+.mini-unit { font-size:10px; color:#666; }
+.mini-label { font-size:9px; color:#555; letter-spacing:1.5px; margin-top:2px; font-weight:600; }
+
+/* Chart */
+.chart-wrap { background:#0D0D12; border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:16px; }
+.chart-header { display:flex; justify-content:space-between; margin-bottom:10px; font-size:10px; color:#555; }
+.chart-bars { display:flex; align-items:flex-end; height:140px; }
+.chart-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; }
+.chart-bar-val { font-size:8px; color:#555; margin-bottom:4px; }
+.chart-bar { border-radius:4px; background:var(--accent); min-width:8px; }
+.chart-bar-date { font-size:8px; color:#444; margin-top:4px; }
+
+/* Input */
+.input-row { display:flex; gap:8px; margin-bottom:12px; }
+.inp { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px;
+  padding:10px 14px; color:#fff; font-size:14px; outline:none; width:100%; }
+.inp::placeholder { color:#444; }
+.log-btn { background:var(--accent); border:none; border-radius:8px; padding:0 16px; cursor:pointer;
+  color:#fff; font-weight:800; font-size:13px; white-space:nowrap; }
+.del-btn { background:rgba(255,70,70,0.1); border:1px solid rgba(255,70,70,0.2); border-radius:8px;
+  padding:0 12px; cursor:pointer; font-size:15px; display:flex; align-items:center; }
+
+.log-row { display:flex; justify-content:space-between; padding:11px 16px; font-size:13px; }
+.log-row + .log-row { border-top:1px solid rgba(255,255,255,0.04); }
+.log-date { color:#777; }
+.log-val { color:#fff; font-weight:700; }
+.empty { color:#444; text-align:center; padding:20px; font-size:13px; }
+
+/* Calories */
+.sec-title { font-size:11px; color:var(--accent); letter-spacing:2px; font-weight:800; margin-bottom:14px; }
+.f-label { font-size:11px; color:#666; margin-bottom:4px; font-weight:600; }
+.field-row { display:flex; gap:8px; margin-bottom:10px; }
+.field-row > div { flex:1; }
+.tog-row { display:flex; gap:6px; margin-bottom:12px; }
+.tog-btn { flex:1; padding:10px; border-radius:8px; text-align:center; cursor:pointer;
+  background:rgba(255,255,255,0.04); border:1px solid var(--border); color:#555; font-weight:700; font-size:13px; }
+.tog-btn.on { background:rgba(255,107,53,0.12); border-color:rgba(255,107,53,0.35); color:var(--accent); }
+
+.chip-scroll { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; -webkit-overflow-scrolling:touch; }
+.chip-scroll::-webkit-scrollbar { display:none; }
+.chip { padding:8px 14px; border-radius:8px; cursor:pointer; white-space:nowrap;
+  background:rgba(255,255,255,0.04); border:1px solid var(--border); color:#555; font-weight:600; font-size:12px; }
+.chip.on { background:rgba(255,107,53,0.12); border-color:rgba(255,107,53,0.35); color:var(--accent); }
+
+.res-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+.res-card { border:1px solid; border-radius:12px; padding:16px; text-align:center; background:rgba(255,255,255,0.02); }
+.res-label { font-size:10px; letter-spacing:2px; font-weight:800; margin-bottom:4px; }
+.res-val { font-size:28px; font-weight:800; color:#fff; }
+.res-sub { font-size:11px; color:#666; margin-top:2px; }
+
+.macro-row { display:flex; padding:16px; }
+.macro-row > div { flex:1; text-align:center; }
+.mac-label { font-size:9px; color:#555; letter-spacing:1.5px; font-weight:700; margin-bottom:4px; }
+.mac-val { font-size:17px; font-weight:800; color:#fff; }
+.mac-sub { font-size:10px; color:#444; margin-top:2px; }
+
+/* Workouts */
+.w-card { background:rgba(255,255,255,0.02); border:1px solid; border-radius:14px; padding:18px;
+  margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  transition:all 0.15s; }
+.w-card:active { transform:scale(0.98); }
+.w-name { font-size:16px; font-weight:800; color:#fff; margin-bottom:2px; }
+.w-focus { font-size:12px; font-weight:700; }
+.w-count { font-size:11px; color:#555; margin-top:2px; }
+.w-arrow { font-size:22px; }
+
+.back-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px;
+  padding:8px 14px; cursor:pointer; color:#999; font-size:12px; font-weight:700; margin-bottom:16px;
+  display:inline-block; }
+.day-title { font-size:22px; font-weight:800; color:#fff; margin-bottom:16px; }
+
+.ex-card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:14px; margin-bottom:8px; display:flex; align-items:center; }
+.ex-card > div { flex:1; }
+.ex-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.ex-meta { font-size:11px; color:#666; }
+.ex-sets { font-weight:700; }
+.yt-btn { background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.25); border-radius:8px;
+  padding:6px 10px; text-decoration:none; color:var(--red); font-size:11px; font-weight:700;
+  white-space:nowrap; margin-left:8px; }
+
+/* Schedule */
+.sch-row { display:flex; align-items:center; background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:14px; margin-bottom:6px; cursor:pointer; gap:12px; transition:all 0.15s; }
+.sch-row:active { transform:scale(0.98); }
+.sch-row.today { border-color:rgba(255,107,53,0.35); background:rgba(255,107,53,0.06); }
+.sch-badge { width:38px; height:38px; border-radius:10px; display:flex; align-items:center;
+  justify-content:center; background:rgba(255,255,255,0.03); border:1px solid;
+  font-size:13px; font-weight:800; color:#444; flex-shrink:0; }
+.sch-day { font-size:13px; font-weight:700; color:var(--text); }
+.sch-day.rest { color:#555; }
+.today-tag { font-size:10px; color:var(--accent); font-weight:700; margin-left:8px; }
+.sch-info { font-size:11px; color:#444; font-weight:600; margin-top:1px; }
+.sch-arrow { color:#555; font-size:18px; margin-left:auto; }
+
+.footer { text-align:center; padding:32px 0; font-size:10px; color:#333; letter-spacing:2px; }
+
+/* Hide sections */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="badge">
+      <span>🏋️ IRON PROTOCOL</span>
+    </div>
+  </div>
+
+  <div class="tab-bar" id="tabBar"></div>
+
+  <div class="tab-content active" id="tab-weight">
+    <div class="row3" id="weightStats"></div>
+    <div id="chartArea"></div>
+    <div class="input-row">
+      <input class="inp" type="number" step="0.1" placeholder="Weight (lbs)" id="weightInput">
+      <button class="log-btn" onclick="addWeight()">+ Log</button>
+      <button class="del-btn" onclick="removeWeight()">🗑</button>
+    </div>
+    <div class="card" id="weightLog"></div>
+  </div>
+
+  <div class="tab-content" id="tab-calories">
+    <div class="card" style="padding:16px;">
+      <div class="sec-title">🔥  MIFFLIN-ST JEOR</div>
+      <div class="f-label">Sex</div>
+      <div class="tog-row" id="sexToggle"></div>
+      <div class="field-row">
+        <div><div class="f-label">Age</div><input class="inp" type="number" id="ageInput" value="21"></div>
+        <div><div class="f-label">Feet</div><input class="inp" type="number" id="ftInput" value="5"></div>
+        <div><div class="f-label">Inches</div><input class="inp" type="number" id="inInput" value="10"></div>
+      </div>
+      <div class="f-label">Body Weight (lbs)</div>
+      <input class="inp" type="number" id="bwInput" value="183" style="margin-bottom:10px;">
+      <div class="f-label">Activity</div>
+      <div class="chip-scroll" id="actChips"></div>
+      <div class="f-label">Goal</div>
+      <div class="chip-scroll" id="goalChips"></div>
+    </div>
+    <div class="res-row" id="calResults"></div>
+    <div class="card macro-row" id="macros"></div>
+  </div>
+
+  <div class="tab-content" id="tab-workouts">
+    <div id="workoutList"></div>
+    <div id="workoutDetail" style="display:none;"></div>
+  </div>
+
+  <div class="tab-content" id="tab-schedule">
+    <div class="sec-title">📅  WEEKLY SPLIT</div>
+    <div id="scheduleList"></div>
+  </div>
+
+  <div class="footer">IRON PROTOCOL v1.0</div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────
+const WORKOUTS = {
+  "Upper A": { focus:"Push Emphasis", color:"#FF6B35", exercises:[
+    {name:"Barbell Bench Press",sets:"4x8",rest:"2-3 min",yt:"https://youtube.com/watch?v=rT7DgCr-3pg"},
+    {name:"Seated DB Shoulder Press",sets:"3x10",rest:"90s",yt:"https://youtube.com/watch?v=qEwKCR5JCog"},
+    {name:"Incline DB Press",sets:"3x10",rest:"90s",yt:"https://youtube.com/watch?v=8iPEnn-ltC8"},
+    {name:"Cable Lateral Raises",sets:"3x15",rest:"60s",yt:"https://youtube.com/watch?v=PPrzBWZDOhA"},
+    {name:"Tricep Pushdown (Rope)",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=vB5OHsJ3EME"},
+    {name:"Overhead Tricep Extension",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=YbX7Wd8jQ-Q"},
+  ]},
+  "Lower A": { focus:"Quad Emphasis", color:"#22D3EE", exercises:[
+    {name:"Barbell Back Squat",sets:"4x6",rest:"3 min",yt:"https://youtube.com/watch?v=bEv6CCg2BC8"},
+    {name:"Romanian Deadlift",sets:"3x10",rest:"2 min",yt:"https://youtube.com/watch?v=7j-2w4-P14I"},
+    {name:"Leg Press",sets:"3x12",rest:"90s",yt:"https://youtube.com/watch?v=IZxyjW7MPJQ"},
+    {name:"Walking Lunges",sets:"3x12 each",rest:"90s",yt:"https://youtube.com/watch?v=D7KaRcUTQeE"},
+    {name:"Leg Curl Machine",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=1Tq3QdYUuHs"},
+    {name:"Standing Calf Raises",sets:"4x15",rest:"60s",yt:"https://youtube.com/watch?v=-M4-G8p8fmc"},
+  ]},
+  "Upper B": { focus:"Pull Emphasis", color:"#A78BFA", exercises:[
+    {name:"Barbell Bent-Over Row",sets:"4x8",rest:"2-3 min",yt:"https://youtube.com/watch?v=FWJR5Ve8bnQ"},
+    {name:"Pull-Ups / Lat Pulldown",sets:"3x10",rest:"90s",yt:"https://youtube.com/watch?v=CAwf7n6Luuc"},
+    {name:"Cable Face Pull",sets:"3x15",rest:"60s",yt:"https://youtube.com/watch?v=rep-qVOkqgk"},
+    {name:"Dumbbell Chest Fly",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=eozdVDA78K0"},
+    {name:"Barbell Curl",sets:"3x10",rest:"60s",yt:"https://youtube.com/watch?v=kwG2ipFRgfo"},
+    {name:"Hammer Curls",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=zC3nLlEvin4"},
+  ]},
+  "Lower B": { focus:"Posterior Emphasis", color:"#34D399", exercises:[
+    {name:"Conventional Deadlift",sets:"4x5",rest:"3 min",yt:"https://youtube.com/watch?v=op9kVnSso6Q"},
+    {name:"Bulgarian Split Squat",sets:"3x10 each",rest:"90s",yt:"https://youtube.com/watch?v=2C-uNgKwPLE"},
+    {name:"Hip Thrust",sets:"3x12",rest:"90s",yt:"https://youtube.com/watch?v=SEdqd1n0cvg"},
+    {name:"Leg Extension",sets:"3x15",rest:"60s",yt:"https://youtube.com/watch?v=YyvSfVjQeL0"},
+    {name:"Seated Calf Raises",sets:"4x15",rest:"60s",yt:"https://youtube.com/watch?v=JbyjNymZOt0"},
+    {name:"Hanging Leg Raises",sets:"3x12",rest:"60s",yt:"https://youtube.com/watch?v=hdng3Nm1x_E"},
+  ]},
+};
+
+const SCHEDULE = [
+  {day:"Monday",workout:"Upper A"},{day:"Tuesday",workout:"Lower A"},
+  {day:"Wednesday",workout:"Rest"},{day:"Thursday",workout:"Upper B"},
+  {day:"Friday",workout:"Lower B"},{day:"Saturday",workout:"Rest"},{day:"Sunday",workout:"Rest"},
+];
+
+const TABS = [{id:"weight",label:"Weight",emoji:"⚖️"},{id:"calories",label:"Cals",emoji:"🔥"},
+  {id:"workouts",label:"Lifts",emoji:"🏋️"},{id:"schedule",label:"Week",emoji:"📅"}];
+
+const ACT = [{label:"Sedentary",val:1.2},{label:"Light",val:1.375},{label:"Moderate",val:1.55},
+  {label:"Active",val:1.725},{label:"Very Active",val:1.9}];
+const GOALS = [{label:"-250",val:250},{label:"-500",val:500},{label:"-750",val:750},
+  {label:"Maintain",val:0},{label:"+250",val:-250},{label:"+500",val:-500}];
+
+// ── State ─────────────────────────────────────────────────────
+let currentTab = "weight";
+let weights = JSON.parse(localStorage.getItem("ip_weights") || "[]");
+let sex = "male", actIdx = 2, goalIdx = 1;
+let selectedDay = null;
+
+function saveWeights() { localStorage.setItem("ip_weights", JSON.stringify(weights)); }
+
+// ── Tabs ──────────────────────────────────────────────────────
+function renderTabs() {
+  const bar = document.getElementById("tabBar");
+  bar.innerHTML = TABS.map(t =>
+    `<button class="tab-btn ${currentTab===t.id?"on":""}" onclick="switchTab('${t.id}')">${t.emoji} ${t.label}</button>`
+  ).join("");
+}
+
+function switchTab(id) {
+  currentTab = id;
+  selectedDay = null;
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+  document.getElementById("tab-"+id).classList.add("active");
+  renderTabs();
+  if(id==="weight") renderWeight();
+  if(id==="calories") renderCalories();
+  if(id==="workouts") renderWorkouts();
+  if(id==="schedule") renderSchedule();
+}
+
+// ── Weight ────────────────────────────────────────────────────
+function renderWeight() {
+  const last = weights.length ? weights[weights.length-1].lbs : "--";
+  const diff = weights.length >= 2 ? (weights[weights.length-1].lbs - weights[0].lbs).toFixed(1) : "0.0";
+  const diffNum = parseFloat(diff);
+
+  document.getElementById("weightStats").innerHTML = [
+    {l:"CURRENT",v:last,u:"lbs"},
+    {l:"CHANGE",v:(diffNum>0?"+":"")+diff,u:"lbs",g:diffNum<0},
+    {l:"ENTRIES",v:weights.length,u:""},
+  ].map(s => `<div class="mini-card">
+    <div class="mini-val" ${s.g?'style="color:var(--green)"':''}>${s.v}<span class="mini-unit"> ${s.u}</span></div>
+    <div class="mini-label">${s.l}</div>
+  </div>`).join("");
+
+  // Chart
+  const area = document.getElementById("chartArea");
+  if(weights.length < 2) { area.innerHTML = ""; }
+  else {
+    const recent = weights.slice(-10);
+    const vals = recent.map(d=>d.lbs);
+    const min = Math.min(...vals)-1, max = Math.max(...vals)+1, range = max-min||1;
+    area.innerHTML = `<div class="chart-wrap">
+      <div class="chart-header"><span>${max.toFixed(1)}</span><span>Last ${recent.length} entries</span><span>${min.toFixed(1)}</span></div>
+      <div class="chart-bars">${recent.map((d,i) => {
+        const h = ((d.lbs-min)/range)*120 + 20;
+        const op = (0.3 + (i/recent.length)*0.7).toFixed(2);
+        return `<div class="chart-bar-col">
+          <div class="chart-bar-val">${d.lbs}</div>
+          <div class="chart-bar" style="height:${h}px;opacity:${op};width:${Math.max(8, (100/recent.length)*0.55)}%"></div>
+          <div class="chart-bar-date">${d.date}</div>
+        </div>`;
+      }).join("")}</div>
+    </div>`;
+  }
+
+  // Log
+  const log = document.getElementById("weightLog");
+  if(!weights.length) { log.innerHTML = '<div class="empty">No entries yet. Log your first weight above.</div>'; }
+  else {
+    log.innerHTML = [...weights].reverse().slice(0,10).map(w =>
+      `<div class="log-row"><span class="log-date">${w.date}</span><span class="log-val">${w.lbs} lbs</span></div>`
+    ).join("");
+  }
+}
+
+function addWeight() {
+  const inp = document.getElementById("weightInput");
+  const v = parseFloat(inp.value);
+  if(isNaN(v) || v <= 0) return;
+  const t = new Date();
+  weights.push({ date: (t.getMonth()+1)+"/"+t.getDate(), lbs: v });
+  saveWeights();
+  inp.value = "";
+  renderWeight();
+}
+
+function removeWeight() {
+  if(!weights.length) return;
+  if(confirm("Delete last weight entry?")) {
+    weights.pop();
+    saveWeights();
+    renderWeight();
+  }
+}
+
+// ── Calories ──────────────────────────────────────────────────
+function renderCalories() {
+  // Sex toggle
+  document.getElementById("sexToggle").innerHTML = ["male","female"].map(v =>
+    `<div class="tog-btn ${sex===v?"on":""}" onclick="sex='${v}';renderCalories()">${v.charAt(0).toUpperCase()+v.slice(1)}</div>`
+  ).join("");
+
+  // Chips
+  document.getElementById("actChips").innerHTML = ACT.map((a,i) =>
+    `<div class="chip ${actIdx===i?"on":""}" onclick="actIdx=${i};renderCalories()">${a.label}</div>`
+  ).join("");
+  document.getElementById("goalChips").innerHTML = GOALS.map((g,i) =>
+    `<div class="chip ${goalIdx===i?"on":""}" onclick="goalIdx=${i};renderCalories()">${g.label}</div>`
+  ).join("");
+
+  // Calc
+  const age = parseFloat(document.getElementById("ageInput").value)||0;
+  const ft = parseFloat(document.getElementById("ftInput").value)||0;
+  const inc = parseFloat(document.getElementById("inInput").value)||0;
+  const bw = parseFloat(document.getElementById("bwInput").value)||0;
+  const heightCm = (ft*12+inc)*2.54;
+  const weightKg = bw*0.453592;
+  const bmr = sex==="male" ? 10*weightKg+6.25*heightCm-5*age+5 : 10*weightKg+6.25*heightCm-5*age-161;
+  const tdee = Math.round(bmr*ACT[actIdx].val);
+  const deficit = GOALS[goalIdx].val;
+  const target = tdee - deficit;
+  const protein = Math.round(bw);
+
+  document.getElementById("calResults").innerHTML =
+    `<div class="res-card" style="border-color:var(--cyan)44"><div class="res-label" style="color:var(--cyan)">TDEE</div><div class="res-val">${tdee}</div><div class="res-sub">cal/day</div></div>`+
+    `<div class="res-card" style="border-color:var(--accent)44"><div class="res-label" style="color:var(--accent)">TARGET</div><div class="res-val">${target}</div><div class="res-sub">cal/day</div></div>`;
+
+  const rate = deficit>0 ? "~"+(deficit*7/3500).toFixed(1)+" lb/wk" : deficit<0 ? "+"+(Math.abs(deficit)*7/3500).toFixed(1)+" lb/wk" : "0 lb/wk";
+  document.getElementById("macros").innerHTML = [
+    {l:"PROTEIN",v:protein+"g",sub:"1g/lb"},
+    {l:"RATE",v:rate,sub:"est."},
+    {l:"BMR",v:Math.round(bmr),sub:"base"},
+  ].map(m => `<div><div class="mac-label">${m.l}</div><div class="mac-val">${m.v}</div><div class="mac-sub">${m.sub}</div></div>`).join("");
+}
+
+// ── Workouts ──────────────────────────────────────────────────
+function renderWorkouts() {
+  const list = document.getElementById("workoutList");
+  const detail = document.getElementById("workoutDetail");
+
+  if(!selectedDay) {
+    detail.style.display = "none";
+    list.style.display = "block";
+    list.innerHTML = Object.entries(WORKOUTS).map(([name, data]) =>
+      `<div class="w-card" style="border-color:${data.color}44" onclick="selectedDay='${name}';renderWorkouts()">
+        <div><div class="w-name">${name}</div><div class="w-focus" style="color:${data.color}">${data.focus}</div>
+        <div class="w-count">${data.exercises.length} exercises</div></div>
+        <div class="w-arrow" style="color:${data.color}">›</div>
+      </div>`
+    ).join("");
+  } else {
+    list.style.display = "none";
+    detail.style.display = "block";
+    const wo = WORKOUTS[selectedDay];
+    detail.innerHTML = `
+      <div class="back-btn" onclick="selectedDay=null;renderWorkouts()">← Back to Split</div>
+      <div class="sec-title" style="color:${wo.color}">${wo.focus.toUpperCase()}</div>
+      <div class="day-title">${selectedDay}</div>
+      ${wo.exercises.map(ex => `
+        <div class="ex-card">
+          <div><div class="ex-name">${ex.name}</div>
+          <div class="ex-meta"><span class="ex-sets" style="color:${wo.color}">${ex.sets}</span>  ·  Rest: ${ex.rest}</div></div>
+          <a class="yt-btn" href="${ex.yt}" target="_blank" rel="noopener">▶ Form</a>
+        </div>
+      `).join("")}`;
+  }
+}
+
+// ── Schedule ──────────────────────────────────────────────────
+function renderSchedule() {
+  const todayName = new Date().toLocaleDateString("en-US",{weekday:"long"});
+  document.getElementById("scheduleList").innerHTML = SCHEDULE.map(sc => {
+    const rest = sc.workout==="Rest";
+    const wo = WORKOUTS[sc.workout];
+    const today = sc.day===todayName;
+    return `<div class="sch-row ${today?"today":""}" onclick="${rest?"":"selectedDay='"+sc.workout+"';switchTab('workouts')"}">
+      <div class="sch-badge" style="border-color:${rest?"var(--border)":wo.color+"44"};${rest?"":"color:"+wo.color}">${sc.day.slice(0,2)}</div>
+      <div style="flex:1">
+        <div class="sch-day ${rest?"rest":""}">${sc.day}${today?'<span class="today-tag">TODAY</span>':""}</div>
+        <div class="sch-info" style="color:${rest?"#444":wo.color}">${rest?"Recovery":sc.workout+" — "+wo.focus}</div>
+      </div>
+      ${rest?"":'<span class="sch-arrow">›</span>'}
+    </div>`;
+  }).join("");
+}
+
+// ── Input listeners for calorie recalc ────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  ["ageInput","ftInput","inInput","bwInput"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => { if(currentTab==="calories") renderCalories(); });
+  });
+  document.getElementById("weightInput").addEventListener("keydown", (e) => { if(e.key==="Enter") addWeight(); });
+});
+
+// ── Service Worker ────────────────────────────────────────────
+if("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
+
+// ── Init ──────────────────────────────────────────────────────
+renderTabs();
+renderWeight();
+renderCalories();
+renderWorkouts();
+renderSchedule();
+</script>
+</body>
+</html>
